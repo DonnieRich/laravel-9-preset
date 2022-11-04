@@ -3,6 +3,7 @@
 namespace PacificDev\Laravel9Preset\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use InvalidArgumentException;
 
 class Preset extends Command
@@ -52,8 +53,19 @@ class Preset extends Command
         $this->info('Bootstrap, Sass, and Vite setup successful');
         $this->warn('Now you can run: [npm i && npm run dev] to compile all assets');
     }
+
     public function authentication()
     {
+        if ($this->install_breeze() !== 0) {
+            $this->error('Error during Laravel Breeze installation!');
+            return;
+        }
+
+        if ($this->run_migrations() !== 0) {
+            $this->error('Error during Laravel Breeze migrations!');
+            return;
+        }
+
         Presets\AuthCommand::install();
         $this->info('Bootstrap, Sass, and Vite Authentication scaffolding setup successful');
         $this->warn('Now you can run: [npm i && npm run dev] to compile all assets');
@@ -83,5 +95,19 @@ class Preset extends Command
             base_path('package.json'),
             json_encode($packages, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . PHP_EOL
         );
+    }
+
+    protected function run_migrations()
+    {
+        $this->info('Running Laravel Breeze migrations');
+        $exit_code = Artisan::call('migrate');
+        return $exit_code;
+    }
+
+    protected function install_breeze()
+    {
+        $this->info('Installing Laravel Breeze');
+        $exit_code = Artisan::call('breeze:install');
+        return $exit_code;
     }
 }
